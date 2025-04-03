@@ -16,6 +16,11 @@ func Authenticate() gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 		cookieToken, _ := c.Cookie("accessToken")
 
+		if c.Request.Method == "OPTIONS" {
+			c.Next()
+			return
+		}
+
 		if authHeader == "" && cookieToken == "" {
 			log.Println("Token não fornecido")
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token não fornecido"})

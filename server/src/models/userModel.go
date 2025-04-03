@@ -10,5 +10,6 @@ type User struct {
 	Email    string             `bson:"email" json:"email" validate:"required"`
 	Password string             `bson:"password" json:"password" validate:"required"`
 	UserType string             `bson:"userType" json:"userType" validate:"required"`
+	CNH      string             `bson:"cnh" json:"cnh" validate:"required,len=11,numeric"`
 	IsActive bool               `bson:"isActive" json:"isActive" validate:"required"`
 }

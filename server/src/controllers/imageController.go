@@ -99,7 +99,6 @@ func UploadCheckInImages() gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Imagens de check-in enviadas com sucesso",
-			"paths":   uploadedPaths,
 		})
 	}
 }
@@ -143,7 +142,6 @@ func UploadCheckOutImages() gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Imagens de check-out enviadas com sucesso",
-			"paths":   uploadedPaths,
 		})
 	}
 }

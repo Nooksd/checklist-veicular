@@ -12,23 +12,23 @@ import (
 )
 
 func main() {
+	router := gin.New()
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"https://localhost:5173", "http://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-Requested-With", "Access-Control-Allow-Origin"},
+		ExposeHeaders:    []string{"Content-Length", "Set-Cookie", "Access-Control-Allow-Origin"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	router := gin.New()
 	router.Use(gin.Logger())
-
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://forms.innova-energy.com.br", "https://forms-api.innova-energy.com.br", "https://localhost:5173"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-Requested-With"},
-		ExposeHeaders:    []string{"Content-Length", "Set-Cookie"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
 
 	routes.AuthRoutes(router)
 
@@ -40,7 +40,7 @@ func main() {
 	routes.UserRoutes(authProtected)
 	routes.CarRoutes(authProtected)
 	routes.CarEntryRoutes(authProtected)
-	routes.EmployeeRoutes(authProtected)
+	routes.FormsRoutes(authProtected)
 
 	router.Run(":" + port)
 }

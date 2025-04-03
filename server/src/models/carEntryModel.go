@@ -10,7 +10,7 @@ type CarEntry struct {
 	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	DeviceInfo DeviceInfo         `bson:"deviceInfo" json:"deviceInfo" validate:"required"`
 	CarID      primitive.ObjectID `bson:"carID" json:"carID" validate:"required"`
-	EmployeeID primitive.ObjectID `bson:"employeeID" json:"employeeID" validate:"required"`
+	UserID     primitive.ObjectID `bson:"userID" json:"userID" validate:"required"`
 	CheckIn    CheckIn            `bson:"checkIn" json:"checkIn" validate:"required"`
 	StartedAt  time.Time          `bson:"startedAt" json:"startedAt" validate:"required"`
 	CheckOut   *CheckOut          `bson:"checkOut" json:"checkOut"`

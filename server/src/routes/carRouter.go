@@ -14,5 +14,7 @@ func CarRoutes(router *gin.RouterGroup) {
 		car.POST("/create", controller.CreateCar())
 		car.DELETE("/delete/:carId", controller.DeleteCar())
 		car.PUT("/update/:carId", controller.UpdateCar())
+		car.PUT("/disable/:carId", controller.DisableCar())
+		car.PUT("/enable/:carId", controller.EnableCar())
 	}
 }

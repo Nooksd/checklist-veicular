@@ -5,6 +5,11 @@ import store from "@/store";
 export const formsApi = axios.create({
   baseURL: "http://localhost:9900/",
   withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    "Access-Control-Allow-Origin": "http://localhost:9900",
+  },
 });
 
 formsApi.interceptors.response.use(

@@ -78,9 +78,9 @@ func StartCarEntry() gin.HandlerFunc {
 func EndCarEntry() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		type EndCarEntryInput struct {
-			CarID      primitive.ObjectID `json:"carID" binding:"required"`
-			EmployeeID primitive.ObjectID `json:"employeeID" binding:"required"`
-			CheckOut   model.CheckOut     `json:"checkOut" binding:"required"`
+			CarID    primitive.ObjectID `json:"carID" binding:"required"`
+			UserID   primitive.ObjectID `json:"userID" binding:"required"`
+			CheckOut model.CheckOut     `json:"checkOut" binding:"required"`
 		}
 
 		var input EndCarEntryInput
@@ -93,9 +93,9 @@ func EndCarEntry() gin.HandlerFunc {
 		defer cancel()
 
 		filter := bson.M{
-			"carID":      input.CarID,
-			"employeeID": input.EmployeeID,
-			"checkOut":   nil,
+			"carID":    input.CarID,
+			"userID":   input.UserID,
+			"checkOut": nil,
 		}
 		opts := options.FindOne().SetSort(bson.D{{Key: "createdAt", Value: -1}})
 		var carEntry model.CarEntry
@@ -346,6 +346,7 @@ func DeleteCarEntry() gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{
 			"message":    "Entrada de carro deletada com ajuste de fuel",
 			"fuelRecord": fuelRecord,
+			"id":         entryID,
 		})
 	}
 }

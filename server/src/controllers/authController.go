@@ -80,7 +80,7 @@ func LoginUser() gin.HandlerFunc {
 			Domain:   os.Getenv("DOMAIN"),
 			Expires:  time.Now().Add(24 * time.Hour),
 			HttpOnly: true,
-			Secure:   false,
+			Secure:   os.Getenv("ENVIROMENT") == "production",
 			SameSite: http.SameSiteNoneMode,
 		})
 
@@ -92,7 +92,7 @@ func LoginUser() gin.HandlerFunc {
 				Domain:   os.Getenv("DOMAIN"),
 				Expires:  time.Now().Add(60 * 24 * time.Hour),
 				HttpOnly: true,
-				Secure:   false,
+				Secure:   os.Getenv("ENVIROMENT") == "production",
 				SameSite: http.SameSiteNoneMode,
 			})
 		}
@@ -150,7 +150,7 @@ func RefreshToken() gin.HandlerFunc {
 			Domain:   os.Getenv("DOMAIN"),
 			Expires:  time.Now().Add(24 * time.Hour),
 			HttpOnly: true,
-			Secure:   true,
+			Secure:   os.Getenv("ENVIROMENT") == "production",
 			SameSite: http.SameSiteNoneMode,
 		})
 
@@ -175,7 +175,7 @@ func LogoutUser() gin.HandlerFunc {
 			Domain:   os.Getenv("DOMAIN"),
 			Expires:  time.Now().Add(24 * time.Hour),
 			HttpOnly: true,
-			Secure:   true,
+			Secure:   os.Getenv("ENVIROMENT") == "production",
 			SameSite: http.SameSiteNoneMode,
 		})
 		http.SetCookie(c.Writer, &http.Cookie{
@@ -185,7 +185,7 @@ func LogoutUser() gin.HandlerFunc {
 			Domain:   os.Getenv("DOMAIN"),
 			Expires:  time.Now().Add(60 * 24 * time.Hour),
 			HttpOnly: true,
-			Secure:   true,
+			Secure:   os.Getenv("ENVIROMENT") == "production",
 			SameSite: http.SameSiteNoneMode,
 		})
 
