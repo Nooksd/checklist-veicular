@@ -3,6 +3,8 @@ package controllers
 import (
 	"context"
 	"net/http"
+	"os"
+	"path/filepath"
 	database "server/src/db"
 	helper "server/src/helpers"
 	model "server/src/models"
@@ -71,7 +73,7 @@ func StartCarEntry() gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusCreated, carEntry)
+		c.JSON(http.StatusCreated, gin.H{"id": carEntry.ID})
 
 	}
 }
@@ -160,9 +162,7 @@ func EndCarEntry() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message":    "Check-out registrado com sucesso",
-			"kmDriven":   kmDriven,
-			"fuelRecord": fuelRecord,
+			"id": carEntry.ID,
 		})
 
 	}
@@ -233,16 +233,44 @@ func GetCarEntry() gin.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		var carEntry model.CarEntry
-		err = carEntryCollection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&carEntry)
+		pipeline := mongo.Pipeline{
+			{{Key: "$match", Value: bson.D{{Key: "_id", Value: objectID}}}},
+			{{Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "users"},
+				{Key: "localField", Value: "userID"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "user"},
+			}}},
+			{{Key: "$unwind", Value: bson.D{
+				{Key: "path", Value: "$user"},
+				{Key: "preserveNullAndEmptyArrays", Value: true},
+			}}},
+			{{Key: "$project", Value: bson.D{
+				{Key: "user.password", Value: 0},
+			}}},
+		}
+
+		cursor, err := carEntryCollection.Aggregate(ctx, pipeline)
 		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Entrada de carro não encontrado"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro na agregação"})
 			return
 		}
 
-		c.JSON(http.StatusOK, carEntry)
+		var results []model.CarEntry
+		if err := cursor.All(ctx, &results); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao ler os resultados"})
+			return
+		}
+
+		if len(results) == 0 {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Entrada de carro não encontrada"})
+			return
+		}
+
+		c.JSON(http.StatusOK, results[0])
 	}
 }
+
 func GetCarEntrys() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if ok, _, _ := helper.CheckAdminOrUidPermission(c, ""); !ok {
@@ -253,7 +281,9 @@ func GetCarEntrys() gin.HandlerFunc {
 		defer cancel()
 
 		var carEntries []model.CarEntry
-		cursor, err := carEntryCollection.Find(ctx, bson.M{})
+
+		opts := options.Find().SetSort(bson.D{{Key: "startedAt", Value: -1}})
+		cursor, err := carEntryCollection.Find(ctx, bson.M{}, opts)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao buscar entradas de carro"})
 			return
@@ -269,6 +299,7 @@ func GetCarEntrys() gin.HandlerFunc {
 		c.JSON(http.StatusOK, carEntries)
 	}
 }
+
 func DeleteCarEntry() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if ok, _, _ := helper.CheckAdminOrUidPermission(c, ""); !ok {
@@ -293,9 +324,23 @@ func DeleteCarEntry() gin.HandlerFunc {
 		}
 
 		if carEntry.KMDriven == nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Entrada de carro não possui kmDriven para cálculo de fuel"})
+			result, err := carEntryCollection.DeleteOne(ctx, bson.M{"_id": objectID})
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao deletar entrada de carro"})
+				return
+			}
+			if result.DeletedCount == 0 {
+				c.JSON(http.StatusNotFound, gin.H{"error": "Entrada de carro não encontrada"})
+				return
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"message": "Entrada de carro deletada com ajuste de fuel",
+				"id":      entryID,
+			})
 			return
 		}
+
 		kmDriven := *carEntry.KMDriven
 
 		var car model.Car
@@ -341,6 +386,11 @@ func DeleteCarEntry() gin.HandlerFunc {
 		if result.DeletedCount == 0 {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Entrada de carro não encontrada"})
 			return
+		}
+
+		uploadPath := filepath.Join("uploads", carEntry.ID.Hex())
+		if err := os.RemoveAll(uploadPath); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao deletar imagens"})
 		}
 
 		c.JSON(http.StatusOK, gin.H{

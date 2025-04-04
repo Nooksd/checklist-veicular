@@ -177,9 +177,6 @@ func UpdateCar() gin.HandlerFunc {
 			return
 		}
 
-		delete(updateData, "id")
-		delete(updateData, "_id")
-
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 

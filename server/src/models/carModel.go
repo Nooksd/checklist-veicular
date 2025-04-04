@@ -12,5 +12,6 @@ type Car struct {
 	Brand       string             `bson:"brand" json:"brand" validate:"required"`
 	Year        int                `bson:"year" json:"year" validate:"required"`
 	IsActive    bool               `bson:"isActive" json:"isActive" validate:"required"`
-	Consumption float32            `bson:"consumption" json:"consumption" validate:"required,gt=0"`
+	Capacity    int                `bson:"capacity" json:"capacity" validate:"required,gt=0"`
+	Consumption float64            `bson:"consumption" json:"consumption" validate:"required,gt=0"`
 }

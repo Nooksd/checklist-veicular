@@ -155,7 +155,11 @@ const Router = () => {
         />
         <Route
           path="/forms/check-out"
-          element={<ProtectedRoute>{/* <CheckOutForm /> */}</ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <CheckOutForm />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/forms/fuel-in"

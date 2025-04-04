@@ -1,74 +1,22 @@
 // src/pages/forms/CheckInForm.jsx
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { checkIn } from "@/store/slicers/carEntrySlicer";
+import { checkIn, postCheckInImages } from "@/store/slicers/carEntrySlicer";
 import { getUsers } from "@/store/slicers/userSlicer";
 import { getCars } from "@/store/slicers/carSlicer";
-import {
-  MapPinIcon,
-  PhotoIcon,
-  DocumentArrowUpIcon,
-  TruckIcon,
-  UserCircleIcon,
-} from "@heroicons/react/24/outline";
-
-export const LocationInput = ({ onLocationUpdate }) => {
-  const [location, setLocation] = useState(null);
-  const [error, setError] = useState(null);
-
-  const getLocation = () => {
-    if (!navigator.geolocation) {
-      setError("Geolocalização não suportada pelo navegador");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const newLocation = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        };
-        setLocation(newLocation);
-        onLocationUpdate(newLocation);
-        setError(null);
-      },
-      (err) => {
-        setError("Permissão de localização negada");
-        console.error(err);
-      }
-    );
-  };
-
-  return (
-    <div className="space-y-2">
-      <button
-        type="button"
-        onClick={getLocation}
-        className="flex items-center bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg"
-      >
-        <MapPinIcon className="w-5 h-5 mr-2" />
-        {location ? "Atualizar Localização" : "Obter Localização Atual"}
-      </button>
-
-      {location && (
-        <div className="text-sm text-gray-600">
-          Latitude: {location.latitude.toFixed(6)}, Longitude:{" "}
-          {location.longitude.toFixed(6)}
-        </div>
-      )}
-
-      {error && <div className="text-red-500 text-sm">{error}</div>}
-    </div>
-  );
-};
+import { TruckIcon } from "@heroicons/react/24/outline";
+import LocationInput from "../../components/LocationInput";
+import ImageUploader from "../../components/ImageUploader";
 
 const CheckInForm = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { status } = useSelector((state) => state.carEntry);
   const { users } = useSelector((state) => state.user);
   const { cars } = useSelector((state) => state.car);
+
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   const [formData, setFormData] = useState({
     carID: "",
@@ -78,9 +26,10 @@ const CheckInForm = () => {
       nextLocation: "",
       carState: "",
       actualKM: "",
-      images: [],
     },
   });
+
+  const [uploadError, setUploadError] = useState(null);
 
   useEffect(() => {
     dispatch(getUsers("?active=true"));
@@ -89,21 +38,55 @@ const CheckInForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setSuccessMessage("");
+    setErrorMessage("");
+
     const payload = {
       ...formData,
-      carID: primitive.ObjectID(formData.carID),
-      userID: primitive.ObjectID(formData.userID),
+      carID: formData.carID,
+      userID: formData.userID,
       checkIn: {
         ...formData.checkIn,
         actualKM: parseFloat(formData.checkIn.actualKM),
       },
     };
 
-    dispatch(checkIn(payload)).then((action) => {
-      if (action.payload?.id) {
-        navigate(`/car-entries/${action.payload.id}`);
-      }
-    });
+    dispatch(checkIn(payload))
+      .unwrap()
+      .then((action) => {
+        if (action?.id) {
+          if (selectedFiles.length > 0) {
+            const formDataImages = new FormData();
+            selectedFiles.forEach((file) => {
+              formDataImages.append("images", file);
+            });
+
+            dispatch(
+              postCheckInImages({ entryId: action.id, data: formDataImages })
+            ).then((response) => {
+              if (response.error) {
+                setUploadError("Erro ao enviar as imagens.");
+                return;
+              }
+            });
+          }
+
+          setSuccessMessage("Check-In registrado com sucesso!");
+          setFormData({
+            carID: "",
+            userID: "",
+            checkIn: {
+              location: { latitude: 0, longitude: 0 },
+              nextLocation: "",
+              carState: "",
+              actualKM: "",
+            },
+          });
+        }
+      })
+      .catch((err) => {
+        setErrorMessage(err.error || "Erro ao registrar o Check-In");
+      });
   };
 
   return (
@@ -113,8 +96,23 @@ const CheckInForm = () => {
         Check-In Veicular
       </h1>
 
+      {successMessage && (
+        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
+          {successMessage}
+        </div>
+      )}
+      {errorMessage && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+          {errorMessage}
+        </div>
+      )}
+      {uploadError && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+          {uploadError}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Seleção de Usuário e Veículo */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -130,7 +128,6 @@ const CheckInForm = () => {
               <option value="">Selecione o usuário</option>
               {users.map((user) => (
                 <option key={user.id} value={user.id}>
-                  <UserCircleIcon className="w-4 h-4 inline mr-2" />
                   {user.name}
                 </option>
               ))}
@@ -149,7 +146,6 @@ const CheckInForm = () => {
               <option value="">Selecione o veículo</option>
               {cars.map((car) => (
                 <option key={car.id} value={car.id}>
-                  <TruckIcon className="w-4 h-4 inline mr-2" />
                   {car.plate} - {car.model}
                 </option>
               ))}
@@ -157,7 +153,6 @@ const CheckInForm = () => {
           </div>
         </div>
 
-        {/* Localização */}
         <div>
           <label className="block text-sm font-medium mb-2">
             Localização Atual
@@ -172,7 +167,6 @@ const CheckInForm = () => {
           />
         </div>
 
-        {/* Demais Campos */}
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -227,7 +221,13 @@ const CheckInForm = () => {
           </div>
         </div>
 
-        {/* Upload de Imagens (Implementar depois) */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium mb-2">
+            Anexar Imagens (Máximo 5)
+          </label>
+          <ImageUploader onFilesChange={setSelectedFiles} />
+        </div>
+
         <div className="border-t pt-4">
           <button
             type="submit"

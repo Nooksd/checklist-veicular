@@ -55,7 +55,7 @@ func uploadImages(c *gin.Context, entryID, subfolder string) ([]string, error) {
 		}
 
 		relativePath := filepath.ToSlash(filepath.Join(basePath, entryID, subfolder, newFilename))
-		uploadedPaths = append(uploadedPaths, relativePath)
+		uploadedPaths = append(uploadedPaths, os.Getenv("URL")+"/"+relativePath)
 	}
 	return uploadedPaths, nil
 }

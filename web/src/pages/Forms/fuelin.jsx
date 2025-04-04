@@ -9,6 +9,9 @@ const FuelForm = () => {
   const { cars } = useSelector((state) => state.car);
   const { status } = useSelector((state) => state.carEntry);
 
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
   const [formData, setFormData] = useState({
     carID: "",
     fuelAdded: "",
@@ -25,12 +28,34 @@ const FuelForm = () => {
       fuelAdded: parseFloat(formData.fuelAdded),
     };
 
-    dispatch(fuelIn(payload));
+    dispatch(fuelIn(payload))
+      .unwrap()
+      .then((response) => {
+        setSuccessMessage("Abastecimento registrado com sucesso!");
+        setFormData({
+          carID: "",
+          fuelAdded: "",
+        });
+      })
+      .catch((err) => {
+        setErrorMessage(err.error || "Erro ao registrar o abastecimento.");
+      });
   };
 
   return (
     <div className="max-w-md mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6">Registro de Abastecimento</h1>
+
+      {successMessage && (
+        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
+          {successMessage}
+        </div>
+      )}
+      {errorMessage && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+          {errorMessage}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>

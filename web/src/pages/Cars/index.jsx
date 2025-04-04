@@ -113,6 +113,9 @@ const Cars = () => {
                   Consumo
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Capacidade
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -141,6 +144,9 @@ const Cars = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {car.consumption} km/l
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {car.capacity} L
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span

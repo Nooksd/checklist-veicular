@@ -142,7 +142,7 @@ const carSlice = createSlice({
       .addCase(updateCar.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(updateCar.fulfilled, (state) => {
+      .addCase(updateCar.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.car = action.payload;
         state.cars = state.cars.map((car) => {

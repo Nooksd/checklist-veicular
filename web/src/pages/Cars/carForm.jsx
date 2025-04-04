@@ -26,6 +26,7 @@ const CarForm = ({ open, onClose, carData }) => {
         brand: "",
         year: new Date().getFullYear(),
         consumption: 0,
+        capacity: 0,
         isActive: true,
       });
     }
@@ -159,13 +160,33 @@ const CarForm = ({ open, onClose, carData }) => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                {...register("isActive")}
-                className="h-4 w-4 text-indigo-600 rounded border-gray-300"
-              />
-              <label className="text-sm text-gray-700">Ativo</label>
+            <div className="grid grid-cols-2 gap-4 mb-10">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  {...register("isActive")}
+                  className="h-4 w-4 text-indigo-600 rounded border-gray-300"
+                />
+                <label className="text-sm text-gray-700">Ativo</label>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Capacidade (L) *
+                </label>
+                <input
+                  type="number"
+                  step="1"
+                  {...register("capacity", {
+                    required: true,
+                    max: 100,
+                    valueAsNumber: true,
+                    min: 20,
+                  })}
+                  className={`mt-1 block w-full rounded-md border ${
+                    errors.capacity ? "border-red-500" : "border-gray-300"
+                  } shadow-sm focus:border-indigo-500 focus:ring-indigo-500`}
+                />
+              </div>
             </div>
 
             <div className="flex justify-end gap-3">

@@ -71,7 +71,7 @@ const Users = () => {
             placeholder="Pesquisar usuários..."
             value={searchTerm}
             onChange={handleSearch}
-            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 border-gray-300"
           />
           <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-3 text-gray-400" />
         </div>

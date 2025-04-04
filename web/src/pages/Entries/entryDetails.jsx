@@ -6,19 +6,51 @@ import {
   ChevronLeftIcon,
   ClockIcon,
   MapPinIcon,
-  PhotoIcon,
+  IdentificationIcon,
   ComputerDesktopIcon,
   DevicePhoneMobileIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { getCarEntry, deleteCarEntry } from "@/store/slicers/carEntrySlicer";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import Zoom from "react-medium-image-zoom";
+import "react-medium-image-zoom/dist/styles.css";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
+
+const MiniMap = ({ latitude, longitude }) => (
+  <MapContainer
+    center={[latitude, longitude]}
+    zoom={13}
+    scrollWheelZoom={false}
+    className="h-64 rounded-lg z-0"
+  >
+    <TileLayer
+      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    />
+    <Marker position={[latitude, longitude]}>
+      <Popup>Localização do Registro</Popup>
+    </Marker>
+  </MapContainer>
+);
 
 const CarEntryDetails = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { carEntry, status } = useSelector((state) => state.carEntry);
+  const { carEntry } = useSelector((state) => state.carEntry);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
 
   useEffect(() => {
@@ -29,6 +61,10 @@ const CarEntryDetails = () => {
     dispatch(deleteCarEntry(id));
     navigate("/car-entries");
   };
+
+  function formatCNH(cnh) {
+    return cnh.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1 $2 $3 $4");
+  }
 
   if (!carEntry.id) return null;
 
@@ -91,17 +127,35 @@ const CarEntryDetails = () => {
               <p className="font-medium">{carEntry.checkIn.carState}</p>
             </div>
 
+            <div className="md:row-span-4">
+              <MiniMap
+                latitude={carEntry.checkIn.location.latitude}
+                longitude={carEntry.checkIn.location.longitude}
+              />
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Local de destino</p>
+              <p className="font-medium">{carEntry.checkIn.nextLocation}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Quilometragem inicial</p>
+              <p className="font-medium">{carEntry.checkIn.actualKM}</p>
+            </div>
+
             {carEntry.checkIn.images?.length > 0 && (
               <div className="md:col-span-2">
                 <p className="text-sm text-gray-500 mb-2">Imagens</p>
                 <div className="grid grid-cols-3 gap-2">
                   {carEntry.checkIn.images.map((img, index) => (
-                    <img
-                      key={index}
-                      src={img}
-                      alt={`Check-in ${index + 1}`}
-                      className="rounded-lg object-cover h-32 w-full"
-                    />
+                    <Zoom key={index}>
+                      <img
+                        src={img}
+                        alt={`Check-in ${index + 1}`}
+                        className="rounded-lg object-cover h-32 w-full"
+                      />
+                    </Zoom>
                   ))}
                 </div>
               </div>
@@ -139,17 +193,35 @@ const CarEntryDetails = () => {
                 <p className="font-medium">{carEntry.checkOut.carState}</p>
               </div>
 
+              <div className="md:row-span-4">
+                <MiniMap
+                  latitude={carEntry.checkOut.location.latitude}
+                  longitude={carEntry.checkOut.location.longitude}
+                />
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-500">Quilometragem final</p>
+                <p className="font-medium">{carEntry.checkOut.actualKM}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-500">Distância percorrida</p>
+                <p className="font-medium">{carEntry.kmDriven}</p>
+              </div>
+
               {carEntry.checkOut.images?.length > 0 && (
                 <div className="md:col-span-2">
                   <p className="text-sm text-gray-500 mb-2">Imagens</p>
                   <div className="grid grid-cols-3 gap-2">
                     {carEntry.checkOut.images.map((img, index) => (
-                      <img
-                        key={index}
-                        src={img}
-                        alt={`Check-out ${index + 1}`}
-                        className="rounded-lg object-cover h-32 w-full"
-                      />
+                      <Zoom key={index}>
+                        <img
+                          src={img}
+                          alt={`Check-out ${index + 1}`}
+                          className="rounded-lg object-cover h-32 w-full"
+                        />
+                      </Zoom>
                     ))}
                   </div>
                 </div>
@@ -157,6 +229,31 @@ const CarEntryDetails = () => {
             </div>
           </div>
         )}
+
+        {/* User Info */}
+        <div className="border-b border-gray-100 pb-6 mb-6">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <IdentificationIcon className="w-5 h-5 text-indigo-500" />
+            Motorista
+          </h2>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-500">Nome</p>
+              <p className="font-medium">{carEntry.user.name}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Email</p>
+              <p className="font-medium">{carEntry.user.email}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">CNH</p>
+              <p className="font-medium">{formatCNH(carEntry.user.cnh)}</p>
+            </div>
+          </div>
+        </div>
 
         {/* Device Info */}
         <div>

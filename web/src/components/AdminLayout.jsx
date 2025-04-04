@@ -8,7 +8,7 @@ import {
   DocumentTextIcon,
   TruckIcon,
   DocumentChartBarIcon,
-  ArrowLeftOnRectangleIcon,
+  ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 
 const AdminLayout = ({ children }) => {
@@ -22,7 +22,8 @@ const AdminLayout = ({ children }) => {
 
   return (
     <div className="min-h-screen flex">
-      <aside className="w-64 bg-white shadow-md flex flex-col border-r border-gray-200">
+      <div className="w-64"></div>
+      <aside className="w-64 h-screen bg-white shadow-md flex fixed flex-col border-r border-gray-200">
         <div className="p-6 text-center mb-4">
           <h1 className="text-xl font-semibold text-indigo-600">Admin Panel</h1>
           <p className="text-sm text-gray-500 mt-1">Painel de Controle</p>
@@ -75,7 +76,7 @@ const AdminLayout = ({ children }) => {
             onClick={handleLogout}
             className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
           >
-            <ArrowLeftOnRectangleIcon className="w-5 h-5 mr-2" />
+            <ArrowLeftEndOnRectangleIcon className="w-5 h-5 mr-2" />
             Sair da Conta
           </button>
         </div>

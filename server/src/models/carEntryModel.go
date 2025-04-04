@@ -16,6 +16,7 @@ type CarEntry struct {
 	CheckOut   *CheckOut          `bson:"checkOut" json:"checkOut"`
 	KMDriven   *float64           `bson:"kmDriven" json:"kmDriven"`
 	EndedAt    *time.Time         `bson:"endedAt" json:"endedAt"`
+	User       *User              `bson:"user,omitempty" json:"user"`
 }
 
 type CheckIn struct {
