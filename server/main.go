@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 	"time"
 
@@ -13,6 +14,8 @@ import (
 
 func main() {
 	router := gin.New()
+
+	router.MaxMultipartMemory = 100 << 20
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"https://localhost:5173", "https://forms.innova-energy.com.br"},
@@ -29,6 +32,11 @@ func main() {
 	}
 
 	router.Use(gin.Logger())
+
+	router.Use(func(c *gin.Context) {
+		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 100<<20)
+		c.Next()
+	})
 
 	routes.AuthRoutes(router)
 

@@ -62,8 +62,6 @@ func uploadImages(c *gin.Context, entryID, subfolder string) ([]string, error) {
 
 func UploadCheckInImages() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 32<<20)
-
 		entryID := c.Param("entryId")
 
 		objectID, err := primitive.ObjectIDFromHex(entryID)
@@ -107,8 +105,6 @@ func UploadCheckInImages() gin.HandlerFunc {
 
 func UploadCheckOutImages() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 32<<20)
-
 		entryID := c.Param("entryId")
 
 		objectID, err := primitive.ObjectIDFromHex(entryID)

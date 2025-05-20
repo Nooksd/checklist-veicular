@@ -6,6 +6,16 @@ import { getCars } from "@/store/slicers/carSlicer";
 import { TruckIcon } from "@heroicons/react/24/outline";
 import LocationInput from "../../components/LocationInput";
 import ImageUploader from "../../components/ImageUploader";
+import imageCompression from "browser-image-compression";
+
+const compressImage = async (file) => {
+  const options = {
+    maxSizeMB: 0.1,
+    maxWidthOrHeight: 1920,
+    useWebWorker: true,
+  };
+  return await imageCompression(file, options);
+};
 
 const CheckInForm = () => {
   const dispatch = useDispatch();
@@ -50,20 +60,23 @@ const CheckInForm = () => {
 
     dispatch(checkIn(payload))
       .unwrap()
-      .then((action) => {
+      .then(async (action) => {
         if (action?.id) {
           if (selectedFiles.length > 0) {
             const formDataImages = new FormData();
-            selectedFiles.forEach((file) => {
-              formDataImages.append("images", file);
+            const compressedFiles = await Promise.all(
+              selectedFiles.map((file) => compressImage(file))
+            );
+
+            compressedFiles.forEach((file) => {
+              formDataImages.append("images", file, file.name);
             });
 
             dispatch(
               postCheckInImages({ entryId: action.id, data: formDataImages })
             ).then((response) => {
               if (response.error) {
-                setUploadError("Erro ao enviar as imagens.");
-                return;
+                setUploadError("Erro ao fazer upload das imagens");
               }
             });
           }
