@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "@/store/slicers/authSlicer";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -11,6 +11,8 @@ const Login = () => {
     password: "",
     keepConnection: false,
   });
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, type, checked, value } = e.target;
@@ -26,7 +28,7 @@ const Login = () => {
   };
 
   if (user) {
-    return <Navigate to="/" replace />;
+    navigate(-1, { replace: true });
   }
 
   return (

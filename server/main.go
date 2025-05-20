@@ -15,7 +15,7 @@ func main() {
 	router := gin.New()
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://localhost:5173", "http://localhost:5173"},
+		AllowOrigins:     []string{"https://localhost:5173", "https://forms.innova-energy.com.br"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-Requested-With", "Access-Control-Allow-Origin"},
 		ExposeHeaders:    []string{"Content-Length", "Set-Cookie", "Access-Control-Allow-Origin"},

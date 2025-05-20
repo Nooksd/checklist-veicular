@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { checkIn, postCheckInImages } from "@/store/slicers/carEntrySlicer";
-import { getUsers } from "@/store/slicers/userSlicer";
 import { getCars } from "@/store/slicers/carSlicer";
 import { TruckIcon } from "@heroicons/react/24/outline";
 import LocationInput from "../../components/LocationInput";
@@ -11,7 +10,7 @@ import ImageUploader from "../../components/ImageUploader";
 const CheckInForm = () => {
   const dispatch = useDispatch();
   const { status } = useSelector((state) => state.carEntry);
-  const { users } = useSelector((state) => state.user);
+  const { user } = useSelector((state) => state.auth);
   const { cars } = useSelector((state) => state.car);
 
   const [successMessage, setSuccessMessage] = useState("");
@@ -20,7 +19,6 @@ const CheckInForm = () => {
 
   const [formData, setFormData] = useState({
     carID: "",
-    userID: "",
     checkIn: {
       location: { latitude: 0, longitude: 0 },
       nextLocation: "",
@@ -32,7 +30,6 @@ const CheckInForm = () => {
   const [uploadError, setUploadError] = useState(null);
 
   useEffect(() => {
-    dispatch(getUsers("?active=true"));
     dispatch(getCars("?active=true"));
   }, [dispatch]);
 
@@ -44,7 +41,7 @@ const CheckInForm = () => {
     const payload = {
       ...formData,
       carID: formData.carID,
-      userID: formData.userID,
+      userID: user.id,
       checkIn: {
         ...formData.checkIn,
         actualKM: parseFloat(formData.checkIn.actualKM),
@@ -113,8 +110,8 @@ const CheckInForm = () => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
+        <div className="space-y-4">
+          {/* <div>
             <label className="block text-sm font-medium mb-2">
               Usuário Responsável
             </label>
@@ -132,7 +129,7 @@ const CheckInForm = () => {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
 
           <div>
             <label className="block text-sm font-medium mb-2">Veículo</label>

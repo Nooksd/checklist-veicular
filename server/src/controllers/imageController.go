@@ -37,7 +37,7 @@ func uploadImages(c *gin.Context, entryID, subfolder string) ([]string, error) {
 		return nil, fmt.Errorf("máximo de 5 imagens permitido")
 	}
 
-	basePath := "uploads"
+	basePath := "uploads/carEntries"
 	entryPath := filepath.Join(basePath, entryID, subfolder)
 
 	if err := ensureDir(entryPath); err != nil {
@@ -47,7 +47,7 @@ func uploadImages(c *gin.Context, entryID, subfolder string) ([]string, error) {
 	var uploadedPaths []string
 	for i, file := range files {
 		timestamp := time.Now().Unix()
-		newFilename := fmt.Sprintf("%d_%d_%s", timestamp, i, file.Filename)
+		newFilename := fmt.Sprintf("%d_%d", timestamp, i)
 		fullPath := filepath.Join(entryPath, newFilename)
 
 		if err := c.SaveUploadedFile(file, fullPath); err != nil {
@@ -62,6 +62,8 @@ func uploadImages(c *gin.Context, entryID, subfolder string) ([]string, error) {
 
 func UploadCheckInImages() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 32<<20)
+
 		entryID := c.Param("entryId")
 
 		objectID, err := primitive.ObjectIDFromHex(entryID)
@@ -105,6 +107,8 @@ func UploadCheckInImages() gin.HandlerFunc {
 
 func UploadCheckOutImages() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 32<<20)
+
 		entryID := c.Param("entryId")
 
 		objectID, err := primitive.ObjectIDFromHex(entryID)

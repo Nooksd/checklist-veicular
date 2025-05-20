@@ -25,8 +25,13 @@ const AdminLayout = ({ children }) => {
       <div className="w-64"></div>
       <aside className="w-64 h-screen bg-white shadow-md flex fixed flex-col border-r border-gray-200">
         <div className="p-6 text-center mb-4">
-          <h1 className="text-xl font-semibold text-indigo-600">Admin Panel</h1>
-          <p className="text-sm text-gray-500 mt-1">Painel de Controle</p>
+          {/* <h1 className="text-xl font-semibold text-indigo-600">Admin Panel</h1>
+          <p className="text-sm text-gray-500 mt-1">Painel de Controle</p> */}
+          <img
+            src="/assets/innova-energy.png"
+            alt="Logo"
+            className="w-32 mx-auto"
+          />
         </div>
 
         <nav className="flex-1 px-4 space-y-1">

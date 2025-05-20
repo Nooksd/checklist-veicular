@@ -38,8 +38,10 @@ const ProtectedRoute = ({ children }) => {
     }
   }, [dispatch, user]);
 
+  console.log(user);
+
   if (loading) return <div>Carregando...</div>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" />;
 
   return children;
 };
@@ -67,8 +69,9 @@ const AdminRoute = ({ children }) => {
   }, [dispatch, user]);
 
   if (loading) return <div>Carregando...</div>;
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.userType !== "ADMIN") return <Navigate to="/" replace />;
+  if (!user) return <Navigate to="/login" />;
+  if (user.userType !== "ADMIN")
+    return <Navigate to="/forms/check-in" replace />;
 
   return children;
 };

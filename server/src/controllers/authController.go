@@ -55,7 +55,7 @@ func LoginUser() gin.HandlerFunc {
 			return
 		}
 
-		err := userCollection.FindOne(ctx, bson.M{"email": request.Email}).Decode(&foundUser)
+		err := userCollection.FindOne(ctx, bson.M{"email": request.Email, "isActive": true}).Decode(&foundUser)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "email e/ou senha incorretos"})
 			return

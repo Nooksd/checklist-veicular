@@ -9,6 +9,7 @@ import (
 	model "server/src/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -110,6 +111,10 @@ func GetUser() gin.HandlerFunc {
 
 func GetUsers() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if ok, _, _ := helper.CheckAdminOrUidPermission(c, ""); !ok {
+			return
+		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
@@ -319,12 +324,17 @@ func EnableUser() gin.HandlerFunc {
 
 func GetCurrentUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var userId string
-		if ok, _, userID := helper.CheckAdminOrUidPermission(c, ""); !ok {
-			return
-		} else {
-			userId = userID
+		userClaims, exists := c.Get("user")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuário não autenticado"})
 		}
+
+		claims, ok := userClaims.(jwt.MapClaims)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao processar token"})
+		}
+
+		userId := claims["UserId"].(string)
 
 		objectID, err := primitive.ObjectIDFromHex(userId)
 		if err != nil {
