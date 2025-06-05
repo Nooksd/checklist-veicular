@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { checkOut, postCheckOutImages } from "@/store/slicers/carEntrySlicer";
 import { getCars } from "@/store/slicers/carSlicer";
-import { LocationInput } from "@/components/LocationInput";
+// import { LocationInput } from "@/components/LocationInput";
 import ImageUploader from "../../components/ImageUploader";
 
 const CheckOutForm = () => {
@@ -14,6 +14,7 @@ const CheckOutForm = () => {
 
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [locationError, setLocationError] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
 
   const [formData, setFormData] = useState({
@@ -24,6 +25,7 @@ const CheckOutForm = () => {
       actualKM: "",
     },
   });
+  const [location, setLocation] = useState({ latitude: 0, longitude: 0 });
 
   const [uploadError, setUploadError] = useState(null);
 
@@ -31,16 +33,23 @@ const CheckOutForm = () => {
     dispatch(getCars("?active=true"));
   }, [dispatch]);
 
+  useEffect(() => tryToGetLocation(), []);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setSuccessMessage("");
     setErrorMessage("");
+
+    if (locationError) {
+      return;
+    }
 
     const payload = {
       carID: formData.carID,
       userID: user.id,
       checkOut: {
         ...formData.checkOut,
+        location: location,
         actualKM: parseFloat(formData.checkOut.actualKM),
       },
     };
@@ -81,6 +90,29 @@ const CheckOutForm = () => {
         setErrorMessage(err.error || "Erro ao registrar o Check-Out");
       });
   };
+
+  function tryToGetLocation() {
+    if (!navigator.geolocation) {
+      console.error("Geolocation API não suportada pelo navegador.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setLocation({ latitude, longitude });
+      },
+      (error) => {
+        setLocationError(true);
+        console.error("Erro ao obter localização:", error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-4">
@@ -145,7 +177,7 @@ const CheckOutForm = () => {
           </div>
         </div>
 
-        <div>
+        {/* <div>
           <label className="block text-sm font-medium mb-2">
             Localização Atual
           </label>
@@ -157,7 +189,7 @@ const CheckOutForm = () => {
               })
             }
           />
-        </div>
+        </div> */}
 
         <div className="space-y-4">
           <div>
@@ -205,7 +237,7 @@ const CheckOutForm = () => {
         <div className="border-t pt-4">
           <button
             type="submit"
-            disabled={status === "loading"}
+            disabled={status === "loading" || locationError}
             className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
           >
             {status === "loading" ? "Registrando..." : "Finalizar Check-Out"}

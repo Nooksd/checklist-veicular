@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { checkIn, postCheckInImages } from "@/store/slicers/carEntrySlicer";
 import { getCars } from "@/store/slicers/carSlicer";
 import { TruckIcon } from "@heroicons/react/24/outline";
-import LocationInput from "../../components/LocationInput";
+// import LocationInput from "../../components/LocationInput";
 import ImageUploader from "../../components/ImageUploader";
 import imageCompression from "browser-image-compression";
 
@@ -25,17 +25,18 @@ const CheckInForm = () => {
 
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [locationError, setLocationError] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
 
   const [formData, setFormData] = useState({
     carID: "",
     checkIn: {
-      location: { latitude: 0, longitude: 0 },
       nextLocation: "",
       carState: "",
       actualKM: "",
     },
   });
+  const [location, setLocation] = useState({ latitude: 0, longitude: 0 });
 
   const [uploadError, setUploadError] = useState(null);
 
@@ -43,10 +44,16 @@ const CheckInForm = () => {
     dispatch(getCars("?active=true"));
   }, [dispatch]);
 
-  const handleSubmit = (e) => {
+  useEffect(() => tryToGetLocation(), []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccessMessage("");
     setErrorMessage("");
+
+    if (locationError) {
+      return;
+    }
 
     const payload = {
       ...formData,
@@ -54,6 +61,7 @@ const CheckInForm = () => {
       userID: user.id,
       checkIn: {
         ...formData.checkIn,
+        location: location,
         actualKM: parseFloat(formData.checkIn.actualKM),
       },
     };
@@ -99,6 +107,29 @@ const CheckInForm = () => {
       });
   };
 
+  function tryToGetLocation() {
+    if (!navigator.geolocation) {
+      console.error("Geolocation API não suportada pelo navegador.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setLocation({ latitude, longitude });
+      },
+      (error) => {
+        setLocationError(true);
+        console.error("Erro ao obter localização:", error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
@@ -116,6 +147,11 @@ const CheckInForm = () => {
           {errorMessage}
         </div>
       )}
+      {locationError && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+          Erro ao obter localizacão
+        </div>
+      )}
       {uploadError && (
         <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
           {uploadError}
@@ -124,26 +160,6 @@ const CheckInForm = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
-          {/* <div>
-            <label className="block text-sm font-medium mb-2">
-              Usuário Responsável
-            </label>
-            <select
-              required
-              className="w-full p-2 border rounded-lg"
-              onChange={(e) =>
-                setFormData({ ...formData, userID: e.target.value })
-              }
-            >
-              <option value="">Selecione o usuário</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
-          </div> */}
-
           <div>
             <label className="block text-sm font-medium mb-2">Veículo</label>
             <select
@@ -163,7 +179,7 @@ const CheckInForm = () => {
           </div>
         </div>
 
-        <div>
+        {/* <div>
           <label className="block text-sm font-medium mb-2">
             Localização Atual
           </label>
@@ -175,7 +191,7 @@ const CheckInForm = () => {
               })
             }
           />
-        </div>
+        </div> */}
 
         <div className="space-y-4">
           <div>
@@ -241,7 +257,7 @@ const CheckInForm = () => {
         <div className="border-t pt-4">
           <button
             type="submit"
-            disabled={status === "loading"}
+            disabled={status === "loading" || locationError}
             className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
           >
             {status === "loading" ? "Registrando..." : "Finalizar Check-In"}
