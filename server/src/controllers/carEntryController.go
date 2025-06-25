@@ -67,7 +67,16 @@ func StartCarEntry() gin.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		_, err := carEntryCollection.InsertOne(ctx, carEntry)
+		err := carEntryCollection.FindOne(ctx, bson.M{
+			"carID":    carEntry.CarID,
+			"checkOut": nil,
+		}).Decode(&carEntry)
+		if err == nil {
+			c.JSON(http.StatusConflict, gin.H{"error": "Já existe uma entrada de carro ativa para este carro"})
+			return
+		}
+
+		_, err = carEntryCollection.InsertOne(ctx, carEntry)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar entrada de carro"})
 			return

@@ -38,8 +38,6 @@ const ProtectedRoute = ({ children }) => {
     }
   }, [dispatch, user]);
 
-  console.log(user);
-
   if (loading) return <div>Carregando...</div>;
   if (!user) return <Navigate to="/login" />;
 
